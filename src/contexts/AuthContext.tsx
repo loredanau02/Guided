@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import type { User as FirebaseUser } from 'firebase/auth'
-import { auth } from '../config/firebase'
+import { auth, isFirebaseConfigured } from '../config/firebase'
 import { signUp as signUpService, signIn as signInService, signOutUser, getUserData } from '../services/auth.service'
 import type { User, UserRole } from '../types'
 
@@ -13,6 +13,7 @@ interface AuthContextValue {
   error: string | null
   isTeacher: boolean
   isStudent: boolean
+  firebaseReady: boolean
   signUp: (email: string, password: string, displayName: string, role: UserRole) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -24,10 +25,15 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(isFirebaseConfigured)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setLoading(false)
+      return
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser)
       if (fbUser) {
@@ -46,6 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const handleSignUp = async (email: string, password: string, displayName: string, role: UserRole) => {
+    if (!isFirebaseConfigured) {
+      setError('Firebase is not configured. Please set up your environment variables.')
+      return
+    }
     try {
       setError(null)
       setLoading(true)
@@ -60,6 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const handleSignIn = async (email: string, password: string) => {
+    if (!isFirebaseConfigured) {
+      setError('Firebase is not configured. Please set up your environment variables.')
+      return
+    }
     try {
       setError(null)
       setLoading(true)
@@ -87,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isTeacher: user?.role === 'teacher',
     isStudent: user?.role === 'student',
+    firebaseReady: isFirebaseConfigured,
     signUp: handleSignUp,
     signIn: handleSignIn,
     signOut: handleSignOut,
