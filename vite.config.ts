@@ -3,11 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  base: '/Guided/',
   plugins: [react(), tailwindcss()],
   server: {
-    host: '127.0.0.1', // Use IPv4 localhost instead of IPv6
-    port: 8000, // Using port 8000 since it works on your system
-    strictPort: false, // Try next port if 8000 is busy
+    host: '127.0.0.1',
+    port: 8000,
+    strictPort: false,
   },
   build: {
     rollupOptions: {

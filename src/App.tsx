@@ -66,7 +66,7 @@ function PageLoader() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/Guided">
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<PublicLayout />}>
